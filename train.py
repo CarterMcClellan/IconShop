@@ -51,6 +51,9 @@ def train(args, cfg):
         pos_emb_path=cfg['pos_emb_path'],
     )
    
+    # Compile the model for faster training
+    model = torch.compile(model, mode="reduce-overhead")
+   
     lr = cfg['lr'] * accelerator.num_processes
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     lr_scheduler = get_linear_schedule_with_warmup(
