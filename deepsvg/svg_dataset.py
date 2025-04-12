@@ -8,7 +8,7 @@ import math
 import torch
 import torch.utils.data
 import random
-from typing import List, Union
+from typing import List, Optional, Union
 import pandas as pd
 import os
 import pickle
@@ -168,7 +168,7 @@ class SVGDataset(torch.utils.data.Dataset):
             return svg.numericalize(256)
         return svg
 
-    def get(self, idx=0, model_args=None, random_aug=True, id=None, svg: SVG=None):
+    def get(self, idx=0, model_args=None, random_aug=True, id=None, svg: Optional[SVG]=None):
         if id is None:
             idx = idx % len(self.df)
             id = self.idx_to_id(idx)
@@ -176,7 +176,6 @@ class SVGDataset(torch.utils.data.Dataset):
 
         if svg is None:
             svg = self._load_svg(id)
-
             svg = SVGDataset.preprocess(svg, augment=random_aug, numericalize=False)
 
         t_sep, fillings = svg.to_tensor(concat_groups=False, PAD_VAL=self.PAD_VAL), svg.to_fillings()

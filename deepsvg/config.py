@@ -1,5 +1,5 @@
 import torch.optim as optim
-from deepsvg.schedulers.warmup import GradualWarmupScheduler
+# from deepsvg.schedulers.warmup import GradualWarmupScheduler
 
 
 class _Config:
@@ -66,10 +66,6 @@ class _Config:
 
     def make_schedulers(self, optimizers, epoch_size):
         return [None] * len(optimizers)
-
-    def make_warmup_schedulers(self, optimizers, scheduler_lrs):
-        return [GradualWarmupScheduler(optimizer, multiplier=1.0, total_epoch=self.warmup_steps, after_scheduler=scheduler_lr)
-                for optimizer, scheduler_lr in zip(optimizers, scheduler_lrs)]
 
     def get_params(self, step, epoch):
         return {}
