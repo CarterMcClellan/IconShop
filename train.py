@@ -51,8 +51,13 @@ def train(args, cfg):
         pos_emb_path=cfg['pos_emb_path'],
     )
    
-    # Compile the model for faster training
-    model = torch.compile(model, mode="reduce-overhead")
+    # Compile the model with dynamic shape handling
+    model = torch.compile(
+        model,
+        mode="default",
+        dynamic=True,
+        fullgraph=True
+    )
    
     lr = cfg['lr'] * accelerator.num_processes
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
