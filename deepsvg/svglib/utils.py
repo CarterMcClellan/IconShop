@@ -3,7 +3,6 @@ from .geom import Bbox, Point
 import math
 import numpy as np
 import IPython.display as ipd
-from moviepy.editor import ImageClip, concatenate_videoclips, ipython_display
 
 
 def make_grid(svgs, num_cols=2, grid_width=24):

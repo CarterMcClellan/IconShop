@@ -8,7 +8,6 @@ import cairosvg
 from PIL import Image
 import io
 import os
-from moviepy.editor import ImageClip, concatenate_videoclips, ipython_display
 import math
 import random
 import networkx as nx

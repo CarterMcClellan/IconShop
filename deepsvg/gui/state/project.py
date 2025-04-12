@@ -2,7 +2,6 @@ import os
 import uuid
 import json
 import numpy as np
-from moviepy.editor import ImageClip, concatenate_videoclips
 import shutil
 
 from deepsvg.svglib.svg import SVG
