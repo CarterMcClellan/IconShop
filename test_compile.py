@@ -53,12 +53,7 @@ def main():
     
     # Compile the model
     print("Compiling model...")
-    model = torch.compile(
-        model,
-        mode="default",
-        dynamic=True,
-        fullgraph=True
-    )
+    model = torch.compile(model)
     
     # Test forward pass
     print("Testing forward pass...")

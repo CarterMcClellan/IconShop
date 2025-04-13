@@ -191,6 +191,7 @@ class SketchDecoder(nn.Module):
     if pixel_mask is not None:
       # pixel_mask.shape [batch_size, text_len+max_len]
       pixel_mask = torch.cat([(torch.zeros([c_bs, context_embedding.shape[0]+self.text_len])==1).to(device), pixel_mask], axis=1)  
+
     decoder_out = self.decoder(tgt=decoder_inputs, memory=memory_encode, memory_key_padding_mask=None,
                                tgt_mask=nopeak_mask, tgt_key_padding_mask=pixel_mask)
 

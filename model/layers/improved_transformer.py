@@ -8,8 +8,8 @@ from torch.nn.init import xavier_uniform_
 from torch.nn.modules.dropout import Dropout
 from torch.nn.modules.linear import Linear
 from torch.nn.modules.normalization import LayerNorm
-
-from .attention import MultiheadAttention
+# from .attention import MultiheadAttention
+from torch.nn import MultiheadAttention
 from .transformer import _get_activation_fn
 
 import pdb 
