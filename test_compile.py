@@ -1,5 +1,4 @@
 import torch
-import argparse
 from dataset import SketchData
 from transformers import AutoTokenizer
 from model.decoder import SketchDecoder
@@ -26,8 +25,8 @@ def main():
     
     # Create a small test dataset
     test_dataset = SketchData(
-        meta_file_path='dataset/train.csv',  # You'll need to adjust this path
-        svg_folder='dataset/svg',  # You'll need to adjust this path
+        meta_file_path='dataset/FIGR-SVG-train.csv',  
+        svg_folder='dataset/FIGR-SVG-svgo', 
         MAX_LEN=512,
         text_len=config['text_len'],
         tokenizer=tokenizer,
