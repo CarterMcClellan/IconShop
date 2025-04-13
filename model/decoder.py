@@ -6,6 +6,13 @@ import torch.nn.functional as F
 import numpy as np
 from einops import rearrange
 
+import warnings
+warnings.filterwarnings("ignore") # ignore all warnings to avoid messing up torch.compile?
+# previously seen the error 
+#   "torch._dynamo.exc.Unsupported: Graph break due to unsupported Python builtin _warnings.warn. 
+#   Please file an issue on GitHub so the PyTorch team can add support for it. "
+
+
 """
 0: SVG END
 1: MASK
