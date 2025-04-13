@@ -188,20 +188,31 @@ class SketchDecoder(nn.Module):
 
     memory_encode = torch.zeros((1, c_bs, self.embed_dim)).to(device)
     
-    # nopeak_mask.shape [c_seqlen+1, c_seqlen+1]
-    nopeak_mask = torch.nn.Transformer.generate_square_subsequent_mask(c_seqlen+1).to(device)  # masked with -inf
+    # Create boolean attention mask instead of float mask
+    nopeak_mask = torch.triu(torch.ones((c_seqlen+1, c_seqlen+1), dtype=torch.bool, device=device), diagonal=1)
+    
+    # Handle padding mask
     if pixel_mask is not None:
-      # pixel_mask.shape [batch_size, text_len+max_len]
-      pixel_mask = torch.cat([(torch.zeros([c_bs, context_embedding.shape[0]+self.text_len])==1).to(device), pixel_mask], axis=1)  
+      # Create explicit padding mask with correct shape
+      padding_mask = torch.zeros((c_bs, c_seqlen+1), dtype=torch.bool, device=device)
+      if pixel_mask is not None:
+        # pixel_mask.shape [batch_size, text_len+max_len]
+        padding_mask[:, context_embedding.shape[0]+self.text_len:] = pixel_mask
 
-    decoder_out = self.decoder(tgt=decoder_inputs, memory=memory_encode, memory_key_padding_mask=None,
-                               tgt_mask=nopeak_mask, tgt_key_padding_mask=pixel_mask)
+    decoder_out = self.decoder(
+      tgt=decoder_inputs, 
+      memory=memory_encode, 
+      memory_key_padding_mask=None,
+      tgt_mask=nopeak_mask, 
+      tgt_key_padding_mask=padding_mask if pixel_mask is not None else None
+    )
 
     # Logits fc
     logits = self.logit_fc(decoder_out)  # [seqlen, bs, dim] 
     logits = logits.transpose(1,0).contiguous()  # [bs, textlen+seqlen, total_token]  # contiguous() is necessary for torch.compile (otherwise stride is weird)
 
-    logits_mask = self.logits_mask[:, :c_seqlen+1]
+    # Expand mask to match batch dimension
+    logits_mask = self.logits_mask[:, :c_seqlen+1].expand(logits.size(0), -1, -1)
     max_neg_value = -torch.finfo(logits.dtype).max
     logits.masked_fill_(logits_mask, max_neg_value)
 

@@ -20,6 +20,14 @@ from model.decoder import SketchDecoder
 #   "torch._dynamo.exc.Unsupported: Graph break due to unsupported Python builtin _warnings.warn. 
 #   Please file an issue on GitHub so the PyTorch team can add support for it. "
 
+import warnings
+
+def my_formatwarning(message, category, filename, lineno, line=None):
+  print(message, category)
+  print('file:', filename, 'line number:', lineno) 
+
+warnings.formatwarning = my_formatwarning
+
 
 def train(args, cfg):
     accum_step = cfg['gradient_accumulation_steps']
