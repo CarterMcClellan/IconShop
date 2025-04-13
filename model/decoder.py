@@ -197,7 +197,7 @@ class SketchDecoder(nn.Module):
 
     # Logits fc
     logits = self.logit_fc(decoder_out)  # [seqlen, bs, dim] 
-    logits = logits.transpose(1,0)  # [bs, textlen+seqlen, total_token] 
+    logits = logits.transpose(1,0).contiguous()  # [bs, textlen+seqlen, total_token]  # contiguous() is necessary for torch.compile (otherwise stride is weird)
 
     logits_mask = self.logits_mask[:, :c_seqlen+1]
     max_neg_value = -torch.finfo(logits.dtype).max
