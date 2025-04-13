@@ -66,7 +66,7 @@ def train(args, cfg):
     )
    
     # Compile the model with dynamic shape handling
-    # model = torch.compile(model)
+    model = torch.compile(model)
    
     lr = cfg['lr'] * accelerator.num_processes
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
