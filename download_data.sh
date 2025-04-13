@@ -1,4 +1,3 @@
 pip install gdown
-gdown https://drive.google.com/file/d/1dXdrBqJDmEn8K8TeY2w3mvEtADZipPOc/view?usp=sharing
+gdown 1dXdrBqJDmEn8K8TeY2w3mvEtADZipPOc
 mv FIGR_dataset dataset
-
