@@ -14,8 +14,8 @@ from transformers import AutoTokenizer
 
 from model.decoder import SketchDecoder
 
-import warnings
-warnings.filterwarnings("ignore") # ignore all warnings to avoid messing up torch.compile?
+# import warnings
+# warnings.filterwarnings("ignore") # ignore all warnings to avoid messing up torch.compile?
 # previously seen the error 
 #   "torch._dynamo.exc.Unsupported: Graph break due to unsupported Python builtin _warnings.warn. 
 #   Please file an issue on GitHub so the PyTorch team can add support for it. "
@@ -58,12 +58,7 @@ def train(args, cfg):
     )
    
     # Compile the model with dynamic shape handling
-    model = torch.compile(
-        model,
-        mode="default",
-        dynamic=True,
-        fullgraph=True
-    )
+    # model = torch.compile(model)
    
     lr = cfg['lr'] * accelerator.num_processes
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
