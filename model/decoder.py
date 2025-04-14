@@ -1,12 +1,11 @@
-from .layers.transformer import *
-from .layers.improved_transformer import *
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import numpy as np
 from einops import rearrange
 
-
+from .layers.transformer import *
+from .layers.improved_transformer import *
 
 """
 0: SVG END

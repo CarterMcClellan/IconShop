@@ -11,6 +11,9 @@ sys.path.insert(0, 'utils')
 from transformers import get_linear_schedule_with_warmup, set_seed
 from accelerate import Accelerator
 from transformers import AutoTokenizer
+import matplotlib.pyplot as plt
+from PIL import Image
+import io
 
 from model.decoder import SketchDecoder
 
@@ -112,6 +115,18 @@ def train(args, cfg):
 
     accelerator.print('Start training...')
     
+    # Sample texts for visualization
+    sample_texts = [
+        'calendar',
+        'emotion,face,sad',
+        'bug,spider',
+        'trash,basket,garbage',
+        'car',
+        'star',
+        'signal,wifi',
+        'book,agenda',
+    ]
+    
     for epoch in range(starting_epoch, cfg['epoch']):
         model = model.train()
         progress_bar = tqdm(total=num_update_steps_per_epoch, disable=not accelerator.is_local_main_process)
@@ -144,6 +159,52 @@ def train(args, cfg):
 
         progress_bar.close()
         accelerator.wait_for_everyone()
+        
+        # Generate and log samples every few epochs
+        if (epoch + 1) % 5 == 0 and accelerator.is_local_main_process:
+            model.eval()
+            with torch.no_grad():
+                for sample_text in sample_texts:
+                    # Tokenize text
+                    encoded_dict = tokenizer(
+                        sample_text,
+                        return_tensors="pt",
+                        padding="max_length",
+                        truncation=True,
+                        max_length=cfg['text_len'],
+                        add_special_tokens=True,
+                        return_token_type_ids=False,
+                    )
+                    tokenized_text = encoded_dict["input_ids"].squeeze()
+                    tokenized_text = tokenized_text.unsqueeze(0).to(accelerator.device)
+                    
+                    # Generate samples
+                    samples = model.sample(n_samples=1, text=tokenized_text)
+                    
+                    # Convert samples to images and log to TensorBoard
+                    for i, sample in enumerate(samples):
+                        # Create a figure
+                        fig, ax = plt.subplots(figsize=(5, 5))
+                        ax.plot(sample[:, 0], sample[:, 1], 'k-')
+                        ax.set_xlim(0, 200)
+                        ax.set_ylim(0, 200)
+                        ax.axis('off')
+                        
+                        # Convert plot to image
+                        buf = io.BytesIO()
+                        plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+                        buf.seek(0)
+                        img = Image.open(buf)
+                        
+                        # Log to TensorBoard
+                        writer.add_image(f'samples/{sample_text}', 
+                                      np.array(img).transpose(2, 0, 1), 
+                                      epoch + 1)
+                        
+                        plt.close()
+            
+            model.train()
+            
         if accelerator.is_local_main_process:
             writer.flush()
 
