@@ -17,20 +17,6 @@ import io
 
 from model.decoder import SketchDecoder
 
-# import warnings
-# warnings.filterwarnings("ignore") # ignore all warnings to avoid messing up torch.compile?
-# previously seen the error 
-#   "torch._dynamo.exc.Unsupported: Graph break due to unsupported Python builtin _warnings.warn. 
-#   Please file an issue on GitHub so the PyTorch team can add support for it. "
-
-import warnings
-
-def my_formatwarning(message, category, filename, lineno, line=None):
-  print(message, category)
-  print('file:', filename, 'line number:', lineno) 
-
-warnings.formatwarning = my_formatwarning
-
 
 def train(args, cfg):
     accum_step = cfg['gradient_accumulation_steps']
@@ -147,6 +133,7 @@ def train(args, cfg):
                 lr_scheduler.step()
                 optimizer.zero_grad()
 
+
             if accelerator.sync_gradients and accelerator.is_local_main_process:
                 if overall_step % cfg['log_every'] == 0:
                     writer.add_scalar("loss/total_loss", total_loss, overall_step)
@@ -156,6 +143,9 @@ def train(args, cfg):
                 total_loss, total_pix_loss, total_text_loss = 0., 0., 0.
                 progress_bar.update(1)
                 overall_step += 1
+
+            # TODO remove, breaking early just for testing 
+            break
 
         progress_bar.close()
         accelerator.wait_for_everyone()
@@ -178,8 +168,12 @@ def train(args, cfg):
                     tokenized_text = encoded_dict["input_ids"][0]  # Get first sequence
                     tokenized_text = tokenized_text.unsqueeze(0).to(accelerator.device)
                     
-                    # Generate samples
-                    samples = model.sample(n_samples=1, text=tokenized_text)
+                    # Generate samples - access the underlying model if in distributed mode
+                    if accelerator.distributed_type != "NO":
+                        model_for_sampling = accelerator.unwrap_model(model)
+                    else:
+                        model_for_sampling = model
+                    samples = model_for_sampling.sample(n_samples=1, text=tokenized_text)
                     
                     # Convert samples to images and log to TensorBoard
                     for i, sample in enumerate(samples):
