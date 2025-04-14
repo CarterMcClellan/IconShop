@@ -2,7 +2,7 @@ import os
 import torch
 import argparse
 from dataset import SketchData
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 import numpy as np 
 import sys
@@ -160,8 +160,8 @@ def train(args, cfg):
         progress_bar.close()
         accelerator.wait_for_everyone()
         
-        # Generate and log samples every few epochs
-        if (epoch + 1) % 5 == 0 and accelerator.is_local_main_process:
+        # Generate and log samples every epoch
+        if accelerator.is_local_main_process:
             model.eval()
             with torch.no_grad():
                 for sample_text in sample_texts:
@@ -175,7 +175,7 @@ def train(args, cfg):
                         add_special_tokens=True,
                         return_token_type_ids=False,
                     )
-                    tokenized_text = encoded_dict["input_ids"].squeeze()
+                    tokenized_text = encoded_dict["input_ids"][0]  # Get first sequence
                     tokenized_text = tokenized_text.unsqueeze(0).to(accelerator.device)
                     
                     # Generate samples
@@ -204,8 +204,6 @@ def train(args, cfg):
                         plt.close()
             
             model.train()
-            
-        if accelerator.is_local_main_process:
             writer.flush()
 
         # save model after n epoch
@@ -224,7 +222,7 @@ def train(args, cfg):
                     with torch.no_grad():
                         loss, pix_loss, text_loss = model(pix, xy, mask, text, return_loss=True)
                         all_targets = accelerator.gather_for_metrics(loss)
-                        all_losses.append(all_targets.mean().item())
+                        all_losses.append(float(all_targets))
             valid_loss = np.array(all_losses).mean()
             accelerator.print(f'Epoch {epoch + 1}: validation loss is {valid_loss}')
 
