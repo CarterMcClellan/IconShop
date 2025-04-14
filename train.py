@@ -144,9 +144,6 @@ def train(args, cfg):
                 progress_bar.update(1)
                 overall_step += 1
 
-            # TODO remove, breaking early just for testing 
-            break
-
         progress_bar.close()
         accelerator.wait_for_everyone()
         
