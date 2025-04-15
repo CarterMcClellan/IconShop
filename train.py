@@ -144,6 +144,9 @@ def train(args, cfg):
                 progress_bar.update(1)
                 overall_step += 1
 
+                # TODO remove, breaking early just for testing 
+                break
+
         progress_bar.close()
         accelerator.wait_for_everyone()
         
@@ -213,7 +216,11 @@ def train(args, cfg):
                     with torch.no_grad():
                         loss, pix_loss, text_loss = model(pix, xy, mask, text, return_loss=True)
                         all_targets = accelerator.gather_for_metrics(loss)
-                        all_losses.append(float(all_targets))
+                        # Take the mean of gathered losses if it's a tensor with multiple elements
+                        if isinstance(all_targets, torch.Tensor) and all_targets.numel() > 1:
+                            all_losses.append(float(all_targets.mean()))
+                        else:
+                            all_losses.append(float(all_targets))
             valid_loss = np.array(all_losses).mean()
             accelerator.print(f'Epoch {epoch + 1}: validation loss is {valid_loss}')
 
